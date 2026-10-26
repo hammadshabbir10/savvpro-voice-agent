@@ -29,6 +29,13 @@ def test_caller_changes_time_halfway(call, calendar):
     assert calendar.find_by_phone("5552223333").start == datetime(2026, 10, 27, 14, 0)
 
 
+def test_make_it_four_changes_the_time(call):
+    talk(call, "I'd like a cleaning next Tuesday at 3")
+    d = talk(call, "Actually, make it 4")
+    assert call.s.at.hour == 16
+    assert any("changed time: 3 PM -> 4 PM" in r for r in d.reasons)
+
+
 def test_correction_at_confirmation(call, calendar):
     talk(call, "book a whitening thursday at 9", "Pat Lee", "5553334444")
     d = talk(call, "no wait, make it friday")

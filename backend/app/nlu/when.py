@@ -77,7 +77,12 @@ def find_time(text: str) -> TimeMention | None:
     if m := re.search(r"\b(\d{1,2})\s*(am|pm|o'?clock)\b", text):
         mer = m.group(2) if m.group(2) in ("am", "pm") else None
         return _mention(int(m.group(1)), 0, text, m.end(), mer)
-    if m := re.search(r"\b(?:at|around|about|for|by)\s+(\d{1,2})\b(?!\s*(?:st|nd|rd|th|/|days?|people|minutes))", text):
+    # A bare hour after a word that introduces a time, including corrections:
+    # "at 3", "around 3", "make it 4", "change it to 4", "move it to 4", "try 4".
+    lead = r"at|around|about|for|by|make (?:it|that)|change (?:it|that) to|move (?:it|that) to|try|until"
+    if m := re.search(rf"\b(?:{lead})\s+(\d{{1,2}})\b(?!\s*(?:st|nd|rd|th|/|days?|people|minutes))", text):
+        return _mention(int(m.group(1)), 0, text, m.end())
+    if m := re.search(r"\b(\d{1,2})\s+instead\b", text):  # "4 instead"
         return _mention(int(m.group(1)), 0, text, m.end())
     return None
 

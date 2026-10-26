@@ -43,6 +43,10 @@ def test_find_date(text, expected):
         ("quarter to ten", time(9, 45), False),
         ("at 4 in the afternoon", time(16), True),
         ("9 o'clock", time(9), False),
+        ("actually, make it 4", time(4), False),
+        ("can you change it to 2", time(2), False),
+        ("make that 10 am", time(10), True),
+        ("4 instead", time(4), False),
     ],
 )
 def test_find_time(text, expected, explicit):

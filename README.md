@@ -15,6 +15,40 @@ the intent and its score, the details found, the reasons and the action taken.
 - [`DESIGN.md`](DESIGN.md): the use case and how the brain makes decisions.
 - [`AI_USAGE.md`](AI_USAGE.md): the AI tools used to build it, where they went wrong, and the token count.
 
+## Screenshots
+
+**Landing page: header and hero**
+
+![Landing page header and hero](docs/screenshots/01-landing-header-hero.png)
+
+**The call screen.** A real call: the caller changes the time ("make it 4") and skips the optional phone number.
+On the right, what the brain decided on that turn, what it knows so far, and the appointment book.
+
+![Call screen with a conversation and the brain's decision](docs/screenshots/02-call-screen.png)
+
+**How it works**
+
+![How it works](docs/screenshots/03-how-it-works.png)
+
+**What it handles**
+
+![Messy calls it handles](docs/screenshots/04-what-it-handles.png)
+
+**The brain**
+
+![How the brain decides](docs/screenshots/05-the-brain.png)
+
+**Footer**
+
+![Footer](docs/screenshots/06-footer.png)
+
+<details>
+<summary><b>Mobile</b></summary>
+
+<img src="docs/screenshots/07-mobile.png" alt="Landing page on a phone" width="390">
+
+</details>
+
 ## Run it
 
 You need **Python 3.11+** and **Node 20+**. For the microphone use **Chrome or Edge** (Firefox and Safari have no
@@ -70,7 +104,7 @@ Then open <http://localhost:3000>.
 ## Tests
 
 ```bash
-cd backend && python -m pytest -q        # 113 tests: parsing, calendar, whole calls, HTTP API
+cd backend && python -m pytest -q        # 118 tests: parsing, calendar, whole calls, HTTP API
 cd frontend && npm run lint && npx tsc --noEmit && npm run build
 ```
 

@@ -15,7 +15,7 @@ browser's built-in Web Speech API.
 - Wrote the speech clean-up, date/time parsing, intent patterns, calendar and the dialog manager.
 - Ran a set of scripted calls through the brain before writing tests; reading those transcripts surfaced most of
   the bugs below.
-- Wrote the test suite (113 tests), the API, the Next.js frontend, Docker and CI.
+- Wrote the test suite (118 tests), the API, the Next.js frontend, Docker and CI.
 - Took headless screenshots at desktop and mobile widths to check the layout.
 
 ## Where it got things wrong (and how it was fixed)
@@ -31,6 +31,7 @@ browser's built-in Web Speech API.
 | A correction at the read-back was reported as "didn't get that" | The changed-detail flag was not passed on in the confirm branch | Fixed; test for "no wait, make it Friday". |
 | Clumsy replies: "a emergency visit", "on tomorrow at 3 PM", "moved on Friday" | Read in the scripted calls | Article and preposition helpers. |
 | Closed-day reply listed the full hours and said "closed on Sundays" twice | Read in the scripted calls | Shorter reply. |
+| "Actually, make it 4" did not change the time | Caught while taking the README screenshots: the call kept 3 PM | A bare hour after "make it", "change it to", "move it to", "try" or before "instead" is now a time. Tests added. |
 | A restarted dev server kept serving the old build | Stopping the shell left the Node process holding port 3000 | Stopped the process by PID and restarted. |
 
 ## Token usage
