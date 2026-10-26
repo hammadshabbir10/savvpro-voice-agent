@@ -160,18 +160,41 @@ export function CallConsole() {
               Book, move or cancel. Try changing your mind halfway; the right side shows why it replied the way it did.
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Toggle label="Voice replies" on={voiceOn} onChange={setVoiceOn} disabled={!speech.canSpeak} />
-            <Toggle label="Hands-free" on={handsFree} onChange={setHandsFree} disabled={!speech.canListen} />
-            {live ? (
-              <button type="button" onClick={hangUp} className="btn-ghost">
-                <PhoneIcon className="h-4 w-4 rotate-[135deg]" /> Hang up
-              </button>
-            ) : (
-              <button type="button" onClick={startCall} className="btn-primary" disabled={busy}>
-                <PhoneIcon /> {callId ? "Call again" : "Start call"}
-              </button>
-            )}
+          <div className="flex shrink-0 flex-col gap-2 lg:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <Toggle
+                label="Voice replies"
+                hint="On: the assistant speaks its replies. Off: replies are text only."
+                on={voiceOn}
+                onChange={setVoiceOn}
+                disabled={!speech.canSpeak}
+              />
+              <Toggle
+                label="Hands-free"
+                hint="On: the mic opens again by itself after each reply. Off: click the mic to talk."
+                on={handsFree}
+                onChange={setHandsFree}
+                disabled={!speech.canListen}
+              />
+              {live ? (
+                <button type="button" onClick={hangUp} className="btn-ghost">
+                  <PhoneIcon className="h-4 w-4 rotate-[135deg]" /> Hang up
+                </button>
+              ) : (
+                <button type="button" onClick={startCall} className="btn-primary" disabled={busy}>
+                  <PhoneIcon /> {callId ? "Call again" : "Start call"}
+                </button>
+              )}
+            </div>
+            <p className="flex items-center gap-1.5 text-xs text-ink-500">
+              <svg className="h-3.5 w-3.5 shrink-0 animate-nudge text-ink-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 19V5M6 11l6-6 6 6" />
+              </svg>
+              <span>
+                <strong className="font-semibold text-ink-700">Voice replies</strong> reads answers aloud ·{" "}
+                <strong className="font-semibold text-ink-700">Hands-free</strong> reopens the mic after each reply
+              </span>
+            </p>
           </div>
         </div>
 
@@ -323,11 +346,14 @@ function MicButton({ listening, disabled, onClick }: { listening: boolean; disab
   );
 }
 
-function Toggle({ label, on, onChange, disabled }: { label: string; on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+type ToggleProps = { label: string; hint: string; on: boolean; onChange: (v: boolean) => void; disabled?: boolean };
+
+function Toggle({ label, hint, on, onChange, disabled }: ToggleProps) {
   return (
     <button
       type="button"
       role="switch"
+      title={disabled ? `${label} needs a browser with speech support, such as Chrome or Edge.` : hint}
       aria-checked={on && !disabled}
       disabled={disabled}
       onClick={() => onChange(!on)}
