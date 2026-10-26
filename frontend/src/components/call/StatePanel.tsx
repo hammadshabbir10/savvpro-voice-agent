@@ -6,7 +6,7 @@ const FIELDS: [keyof CallState, string][] = [
   ["day", "Day"],
   ["at", "Time"],
   ["name", "Name"],
-  ["phone", "Phone"],
+  ["phone", "Phone (optional)"],
 ];
 
 export function StatePanel({ state }: { state: CallState | null }) {
@@ -23,7 +23,9 @@ export function StatePanel({ state }: { state: CallState | null }) {
       <dl className="grid grid-cols-2 gap-px bg-ink-100 sm:grid-cols-3">
         {FIELDS.map(([key, label]) => {
           const raw = state?.[key];
-          const value = key === "phone" && typeof raw === "string" ? `•••-•••-${raw.slice(-4)}` : raw;
+          // Phone numbers stay private on screen: only the last four digits show.
+          const value =
+            key === "phone" ? (typeof raw === "string" ? `ends in ${raw.slice(-4)}` : state?.phone_skipped ? "skipped" : null) : raw;
           return (
             <div key={key} className="bg-white px-5 py-3">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-ink-400">{label}</dt>

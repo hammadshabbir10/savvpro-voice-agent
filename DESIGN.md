@@ -9,7 +9,7 @@ and callers are messy in predictable ways. That makes it a real job from start t
 
 The clinic, "Brightside Dental", is fictional. Hours: Monday to Friday 9 to 5 with lunch 12 to 1, Saturday 9 to 1,
 closed Sunday. Visits are 30 minutes. Some slots are already taken by a fixed pattern of fake patients, and one
-named demo booking (Jordan Lee, 555 014 2233) exists so moving and cancelling can be tried.
+named demo booking (Jordan Lee) exists so moving and cancelling can be tried.
 
 ## The pipeline
 
@@ -47,7 +47,7 @@ removes fillers (um, uh), turns "p.m." into "pm", spelled-out numbers into digit
   affirm, deny.
 - **Details**: date ("tomorrow", "next Tuesday", "November 4", "the 3rd", "11/04"), time ("3:30 pm", "half past
   two", "noon", "at 3"), part of day ("afternoon"), visit type, name ("my name is…", or a bare name when we just
-  asked for one), phone (a 10-digit run, with a leading 1 dropped), a choice ("the second one") and whether the
+  asked for one), phone (any run of 7 to 15 digits in any grouping, such as "135 567454 2132" or "+44 20 7946 0000"), a choice ("the second one") and whether the
   caller is correcting themselves ("actually", "no wait", "instead", "make it").
 
 ### 3. Update what we know
@@ -70,11 +70,11 @@ letting a stray "first" overwrite the day.
    - with two slots on offer, "the first", "the later one", "yes" (if only one), or naming the time picks one; "no"
      asks for another time.
 4. **Next missing or invalid detail** for the job, checked against the calendar:
-   - move/cancel: find the booking by phone, read it back;
+   - move/cancel: find the booking by **name or phone** (a country code on one side still matches), read it back;
    - day: not in the past, not over 90 days out, not a closed day, not fully booked;
    - time: "at 3" with no AM/PM means **3 PM** (hours 1–7 are afternoon at a clinic), not already passed, inside
      opening hours, not taken. A problem time gets **the two nearest free slots** instead of a dead end;
-   - name and phone for new bookings;
+   - name for new bookings, then a phone number, which is **optional**: "skip", "no" or "rather not" moves on;
    - then the **read-back**. Nothing is written until the caller hears it and says yes, and the slot is checked
      again at that moment in case another caller took it.
 
@@ -103,7 +103,9 @@ reply out, so each messy case is a unit test.
 | Date already past this year, or too far ahead | Rejected with a reason |
 | Time earlier today | Rejected |
 | Slot taken by someone else before "yes" | Caught at confirmation; alternatives offered |
-| Phone number not on file (move/cancel) | Asks again; counts as a miss |
+| Phone number in any format | Accepted; only the last four digits are read back |
+| Doesn't want to give a phone number | Skipped; the booking is made without one |
+| Name or number not on file (move/cancel) | Asks again; counts as a miss |
 | Switches job ("actually I want to cancel") | Job switched |
 | Pain or swelling | Earliest visit offered, with a safety note |
 | Silence, or noise like "the first" when asked for a name | Not taken as an answer; asked again |
@@ -115,7 +117,8 @@ reply out, so each messy case is a unit test.
 - **Structure:** parsing, calendar, dialog and HTTP are separate modules; the app is built by a factory
   (`create_app`) so tests inject a fixed clock and a fresh store.
 - **Validation:** request text capped at 500 characters; unknown calls return 404; CORS limited to configured origins.
-- **Privacy:** fake data only; phone numbers are masked in the schedule API and on screen.
+- **Privacy:** fake data only; a phone number is optional, never read back in full, and masked to its last four
+  digits in the schedule API and on screen. Bookings can be found by name instead of number.
 - **Concurrency:** one lock around the shared calendar so two calls cannot book the same slot.
 - **Next steps for a live clinic:** a real database and practice-management integration in place of the in-memory
   calendar; a telephony provider (e.g. SIP/WebRTC) feeding a server-side recognizer; SMS confirmations; per-clinic

@@ -66,7 +66,7 @@ def schedule(request: Request) -> dict:
             {
                 "id": b.id,
                 "name": b.name,
-                "phone": f"***-***-{b.phone[-4:]}",
+                "phone": f"ends in {b.phone[-4:]}" if b.phone else "not given",
                 "service": SERVICE_LABELS[b.service],
                 "start": b.start.isoformat(),
                 "when": say_slot(b.start, today),

@@ -14,7 +14,8 @@ const TRY_LINES = [
   "Actually, make it 4",
   "What are your hours?",
   "I need to cancel my appointment",
-  "555 014 2233",
+  "Jordan Lee",
+  "Skip",
   "I have a really bad toothache",
   "Can you say that again?",
 ];

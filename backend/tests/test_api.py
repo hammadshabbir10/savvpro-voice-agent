@@ -28,7 +28,7 @@ def test_full_call_over_http():
 
     schedule = c.get("/api/schedule").json()["bookings"]
     jane = next(b for b in schedule if b["name"] == "Jane Doe")
-    assert jane["phone"] == "***-***-4567"  # phone numbers are masked
+    assert jane["phone"] == "ends in 4567"  # phone numbers are masked
 
 
 def test_unknown_call_is_404():

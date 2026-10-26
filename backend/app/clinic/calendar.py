@@ -125,8 +125,17 @@ class Calendar:
         return booking
 
     def find_by_phone(self, phone: str) -> Booking | None:
-        upcoming = [b for b in self.bookings.values() if b.phone == phone]
+        upcoming = [b for b in self.bookings.values() if b.phone and phones_match(b.phone, phone)]
         return min(upcoming, key=lambda b: b.start) if upcoming else None
+
+    def find_by_name(self, name: str) -> Booking | None:
+        """Full name, or a first name that only one booking has."""
+        wanted = name.lower().split()
+        exact = [b for b in self.bookings.values() if b.name.lower().split() == wanted]
+        if not exact and len(wanted) == 1:
+            first = [b for b in self.bookings.values() if b.name.lower().split()[0] == wanted[0]]
+            exact = first if len({b.name for b in first}) == 1 else []
+        return min(exact, key=lambda b: b.start) if exact else None
 
     def cancel(self, booking_id: str) -> None:
         self.bookings.pop(booking_id, None)
@@ -135,6 +144,14 @@ class Calendar:
         booking = self.bookings[booking_id]
         booking.start = start
         return booking
+
+
+def phones_match(a: str, b: str) -> bool:
+    """Same digits, allowing one side to carry a country code the other left off."""
+    if a == b:
+        return True
+    shorter, longer = sorted((a, b), key=len)
+    return len(shorter) >= 7 and longer.endswith(shorter)
 
 
 def say_time(t: datetime | time) -> str:

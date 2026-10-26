@@ -1,6 +1,6 @@
 from datetime import datetime, time, timedelta
 
-from app.clinic.calendar import say_slot
+from app.clinic.calendar import phones_match, say_slot
 
 
 def test_hours(calendar):
@@ -37,6 +37,26 @@ def test_add_move_cancel(calendar):
     assert calendar.bookings[b.id].start.time() == time(15, 30)
     calendar.cancel(b.id)
     assert b.id not in calendar.bookings
+
+
+def test_find_by_name_and_phone(calendar):
+    assert calendar.find_by_name("jordan lee").id == "BS-1001"
+    assert calendar.find_by_name("Jordan").id == "BS-1001"  # first name, only one Jordan
+    assert calendar.find_by_name("Taylor Smith") is None
+    assert calendar.find_by_phone("15550142233").id == "BS-1001"  # with a country code
+    assert calendar.find_by_phone("") is None
+
+
+def test_first_name_must_be_unique(calendar):
+    calendar.add("Jordan Park", "", "filling", datetime(2026, 10, 27, 9, 0))
+    assert calendar.find_by_name("jordan") is None
+    assert calendar.find_by_name("jordan park").name == "Jordan Park"
+
+
+def test_phones_match():
+    assert phones_match("5551234567", "15551234567")
+    assert not phones_match("5551234567", "5551234568")
+    assert not phones_match("4567", "5551234567")  # too short to trust
 
 
 def test_say_slot(now):

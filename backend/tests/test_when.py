@@ -52,8 +52,10 @@ def test_find_time(text, expected, explicit):
     assert found.explicit_meridiem is explicit
 
 
-def test_no_time_in_a_phone_number():
-    assert find_time(normalize("my number is 555 123 4567")) is None
+@pytest.mark.parametrize("text", ["my number is 555 123 4567", "it's 135 567454 2132"])
+def test_no_time_or_date_in_a_phone_number(text):
+    assert find_time(normalize(text)) is None
+    assert find_date(normalize(text), TODAY) is None
 
 
 @pytest.mark.parametrize("text, part", [("in the morning", "morning"), ("sometime in the afternoon", "afternoon"), ("whenever", None)])

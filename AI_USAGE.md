@@ -15,7 +15,7 @@ browser's built-in Web Speech API.
 - Wrote the speech clean-up, date/time parsing, intent patterns, calendar and the dialog manager.
 - Ran a set of scripted calls through the brain before writing tests; reading those transcripts surfaced most of
   the bugs below.
-- Wrote the test suite (87 tests), the API, the Next.js frontend, Docker and CI.
+- Wrote the test suite (113 tests), the API, the Next.js frontend, Docker and CI.
 - Took headless screenshots at desktop and mobile widths to check the layout.
 
 ## Where it got things wrong (and how it was fixed)

@@ -15,11 +15,11 @@ const HANDLES = [
   { title: "Questions mid-booking", body: "Hours, address or insurance get answered, then the call goes back to the open question.", icon: "M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z" },
   { title: "Emergencies", body: "Pain or swelling jumps to the earliest visit, with a 911 note for severe cases.", icon: "M12 3 2 20h20L12 3zM12 10v4M12 17h.01" },
   { title: "Getting lost", body: "Three turns it can't use, or a request for a person, hands the call to the front desk.", icon: "M16 11a4 4 0 1 0-8 0M4 20a8 8 0 0 1 16 0M18 8l2-2M20 10h2" },
-  { title: "Move or cancel", body: "Finds the booking by phone number, reads it back, and confirms before changing it.", icon: "M5 12h14M13 6l6 6-6 6" },
+  { title: "Move or cancel", body: "Finds the booking by name or phone number, reads it back, and confirms before changing it.", icon: "M5 12h14M13 6l6 6-6 6" },
   { title: "Saying too much at once", body: "“A checkup tomorrow at 10, I'm Sam, 555 222 3333” fills every detail in one turn.", icon: "M4 6h16M4 12h16M4 18h10" },
 ];
 
-const STRIP = ["Book, move and cancel", "No AI model deciding", "Speech in the browser", "85+ automated tests", "Fake data only"];
+const STRIP = ["Book, move and cancel", "No AI model deciding", "Speech in the browser", "110+ automated tests", "Fake data only"];
 
 const SAMPLE = [
   { who: "agent", text: "Thanks for calling Brightside Dental. How can I help you today?" },
@@ -61,7 +61,7 @@ export default function Home() {
             <dl className="mt-12 grid max-w-md grid-cols-3 gap-3">
               {[
                 ["0", "AI models deciding"],
-                ["85+", "automated tests"],
+                ["110+", "automated tests"],
                 ["3", "jobs, start to end"],
               ].map(([n, label]) => (
                 <div key={label} className="rounded-xl border border-ink-200 bg-white/70 px-4 py-3 backdrop-blur">

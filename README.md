@@ -55,12 +55,12 @@ Then open <http://localhost:3000>.
 
 | Call | Say |
 |---|---|
-| Book | "I'd like a cleaning next Tuesday at 3" → your name → a phone number → "yes" |
+| Book | "I'd like a cleaning next Tuesday at 3" → your name → any phone number, or "skip" → "yes" |
 | Change your mind | During a booking: "actually, make it 4". At the read-back: "no wait, make it Friday" |
 | Taken slot | Book the demo booking's slot (shown in the appointment book) → "the second one" |
 | Closed | "Book a filling on Sunday", then "Saturday at 4" |
-| Move | "I need to reschedule" → **555 014 2233** (fake demo booking for Jordan Lee) → "Friday" → "11 am" → "yes" |
-| Cancel | "Cancel my appointment" → **555 014 2233** → "yes" |
+| Move | "I need to reschedule" → **"Jordan Lee"** (the fake demo booking) → "Friday" → "11 am" → "yes" |
+| Cancel | "Cancel my appointment" → **"Jordan Lee"** (or its fake number, 555 014 2233) → "yes" |
 | Emergency | "I have a really bad toothache" → "the first one" |
 | Questions | "What are your hours?" / "Where are you?" / "Do you take Delta?" at any point |
 | Get help | "Say that again", "start over", "can I talk to a person" |
@@ -70,7 +70,7 @@ Then open <http://localhost:3000>.
 ## Tests
 
 ```bash
-cd backend && python -m pytest -q        # 87 tests: parsing, calendar, whole calls, HTTP API
+cd backend && python -m pytest -q        # 113 tests: parsing, calendar, whole calls, HTTP API
 cd frontend && npm run lint && npx tsc --noEmit && npm run build
 ```
 
@@ -110,4 +110,6 @@ Interactive docs: <http://localhost:8000/docs>.
 
 - All data is fake and kept in memory; restarting the backend resets it.
 - The clinic runs on the server's local time, so "today" and "tomorrow" follow the machine's clock.
+- **Phone numbers are optional** and accepted in any format ("135 567454 2132", "+44 20 7946 0000"). Only the last
+  four digits are ever read back or shown; a booking can be found by name instead.
 - Nothing secret is configured or committed. The only settings are in the `.env.example` files.

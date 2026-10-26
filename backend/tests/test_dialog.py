@@ -53,6 +53,7 @@ def _demo_slot_request(call) -> str:
 def test_taken_slot_offers_alternatives_and_accepts_choice(call):
     d = talk(call, _demo_slot_request(call))
     assert d.action == "offer_alternatives" and "taken" in d.reply
+    assert "October" in d.reply and "AM is already taken" in d.reply  # month and AM/PM keep their capitals
     offers = call.s.offers
     d = talk(call, "the second one")
     assert call.s.at == offers[1].time()
@@ -115,7 +116,7 @@ def test_unknown_phone_for_cancel(call):
 def test_switch_from_booking_to_cancel(call):
     talk(call, "I want to book a cleaning")
     d = talk(call, "actually I want to cancel my appointment")
-    assert call.s.task == "cancel" and d.action == "ask_phone"
+    assert call.s.task == "cancel" and d.action == "ask_lookup"
 
 
 def test_emergency_gets_earliest_slot(call):
@@ -182,3 +183,50 @@ def test_every_turn_explains_itself(call):
     assert d.intent == "book" and d.confidence > 0
     assert d.extracted["service"] == "cleaning"
     assert d.reasons
+
+
+# --- phone numbers are optional and accepted in any format ---------------
+
+
+def test_book_without_a_phone_number(call, calendar):
+    d = talk(call, "book a cleaning tomorrow at 10 am", "Jane Doe")
+    assert d.action == "ask_phone" and "optional" in d.reply
+    d = talk(call, "skip")
+    assert d.action == "confirm" and "text" not in d.reply
+    assert any("optional" in r for r in d.reasons)
+    d = talk(call, "yes")
+    assert d.action == "booked"
+    assert next(b for b in calendar.bookings.values() if b.name == "Jane Doe").phone == ""
+
+
+def test_no_thanks_at_phone_prompt_does_not_hang_up(call):
+    d = talk(call, "book a cleaning tomorrow at 10 am", "Jane Doe", "no thanks")
+    assert d.action == "confirm" and not d.ended
+
+
+def test_phone_number_in_any_format(call, calendar):
+    d = talk(call, "book a cleaning tomorrow at 10 am", "Jane Doe", "it's 135 567454 2132")
+    assert d.action == "confirm" and "ending in 2132" in d.reply
+    talk(call, "yes")
+    assert calendar.find_by_phone("1355674542132").name == "Jane Doe"
+
+
+def test_cancel_by_name(call, calendar):
+    d = talk(call, "cancel my appointment", "Jordan Lee")
+    assert d.action == "confirm_cancel"
+    talk(call, "yes")
+    assert "BS-1001" not in calendar.bookings
+
+
+def test_reschedule_by_first_name_and_country_code(call):
+    d = talk(call, "I need to reschedule", "this is jordan")
+    assert d.action == "ask_date"
+    call2 = type(call)(call.cal, call.now)
+    call2.greet()
+    d = talk(call2, "I need to reschedule", "1 555 014 2233")
+    assert d.action == "ask_date"
+
+
+def test_unknown_name_for_cancel(call):
+    d = talk(call, "cancel my appointment", "Taylor Smith")
+    assert d.action == "booking_not_found"

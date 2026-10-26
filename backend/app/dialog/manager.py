@@ -22,7 +22,7 @@ from app.clinic.calendar import (
     say_slot,
     say_time,
 )
-from app.nlu.intents import Understanding, understand
+from app.nlu.intents import Understanding, understand, wants_to_skip
 from app.nlu.normalize import normalize
 from app.nlu.when import find_date, find_part_of_day, find_time
 
@@ -58,6 +58,7 @@ class State:
     part_of_day: str | None = None
     name: str | None = None
     phone: str | None = None
+    phone_skipped: bool = False  # the caller chose not to give one
     booking_id: str | None = None  # existing booking (reschedule / cancel)
     offers: list[datetime] = field(default_factory=list)
     awaiting: str | None = None  # what the last question asked for
@@ -125,7 +126,7 @@ class Call:
             "time": when_time,
             "part_of_day": find_part_of_day(text),
             "service": u.service,
-            "name": u.name or (self._bare_name(text) if self.s.awaiting == "name" else None),
+            "name": u.name or (self._bare_name(text) if self.s.awaiting in ("name", "lookup") else None),
             "phone": u.phone,
             "choice": u.choice,
         }
@@ -145,6 +146,13 @@ class Call:
         s = self.s
         if not text:
             return self._miss("I didn't catch anything. " + self._question(), "no_input")
+
+        # A phone number is optional for a new booking: "skip", "no", "rather not".
+        if s.awaiting == "phone" and s.task == "book" and not x["phone"] and wants_to_skip(text):
+            s.phone_skipped = True
+            s.misses = 0
+            self._note("Caller chose not to give a phone number (it's optional)")
+            return self._next_step()
 
         # 1. Requests that apply at any point in the call.
         if u.intent == "repeat":
@@ -278,15 +286,15 @@ class Call:
     def _next_step(self) -> tuple[str, str]:
         s = self.s
         if s.task in ("reschedule", "cancel") and not s.booking_id:
-            if not s.phone:
-                s.awaiting = "phone"
-                return "Sure. What's the phone number the appointment is under?", "ask_phone"
-            booking = self.cal.find_by_phone(s.phone)
+            if not s.phone and not s.name:
+                s.awaiting = "lookup"
+                return "Sure. What's the name or the phone number the appointment is under?", "ask_lookup"
+            booking = (s.phone and self.cal.find_by_phone(s.phone)) or (s.name and self.cal.find_by_name(s.name))
             if not booking:
-                s.phone = None
-                s.awaiting = "phone"
+                s.phone = s.name = None
+                s.awaiting = "lookup"
                 return self._miss(
-                    "I couldn't find an appointment under that number. Could you say the phone number again?",
+                    "I couldn't find an appointment under that. Could you say the full name or the phone number again?",
                     "booking_not_found",
                 )
             s.booking_id, s.name, s.service = booking.id, booking.name, booking.service
@@ -338,25 +346,26 @@ class Call:
             s.at = None
             return self._offer(
                 self.cal.alternatives(wanted, self.now),
-                lead=f"{say_slot(wanted, self.today).capitalize()} is already taken.",
+                lead=f"{self._first_upper(say_slot(wanted, self.today))} is already taken.",
             )
 
         if s.task == "book":
             if not s.name:
                 s.awaiting = "name"
                 return "Great, that time is free. What's your full name?", "ask_name"
-            if not s.phone:
+            if not s.phone and not s.phone_skipped:
                 s.awaiting = "phone"
-                return f"Thanks, {s.name.split()[0]}. What's the best phone number to reach you?", "ask_phone"
+                return (
+                    f"Thanks, {s.name.split()[0]}. What's a phone number to reach you? "
+                    "It's optional, so you can say skip."
+                ), "ask_phone"
 
         s.awaiting = "confirm"
         what = SERVICE_LABELS.get(s.service or "", "appointment")
         if s.task == "reschedule":
             return f"To confirm: move your {what} to {say_slot(wanted, self.today)}. Shall I go ahead?", "confirm"
-        return (
-            f"To confirm: {self._a(what)} for {s.name} {self._on(wanted)}, "
-            f"and we'll text {self._say_phone(s.phone)}. Shall I book it?"
-        ), "confirm"
+        text_note = f", and we'll text the number ending in {s.phone[-4:]}" if s.phone else ""
+        return f"To confirm: {self._a(what)} for {s.name} {self._on(wanted)}{text_note}. Shall I book it?", "confirm"
 
     def _check_day(self, day: date) -> str | None:
         if day < self.today:
@@ -432,7 +441,7 @@ class Call:
             booking: Booking = self.cal.move(s.booking_id, start)
             verb = "moved"
         else:
-            booking = self.cal.add(s.name, s.phone, s.service or "checkup", start)
+            booking = self.cal.add(s.name, s.phone or "", s.service or "checkup", start)
             verb = "booked"
         s.result = booking.id
         return self._end(
@@ -450,7 +459,8 @@ class Call:
             "date": "What day would you like to come in?",
             "time": "What time works for you?",
             "name": "What's your full name?",
-            "phone": "What's your phone number?",
+            "phone": "What's a phone number to reach you? You can also say skip.",
+            "lookup": "What's the name or phone number the appointment is under?",
             "offer": "Would one of those times work?",
             "confirm": "Shall I go ahead?",
             "what_to_change": "What would you like to change?",
@@ -478,11 +488,10 @@ class Call:
         return said if said.startswith(("today", "tomorrow")) else f"on {said}"
 
     @staticmethod
+    def _first_upper(text: str) -> str:
+        return text[:1].upper() + text[1:]
+
+    @staticmethod
     def _a(noun: str) -> str:
         return f"an {noun}" if noun[0] in "aeiou" else f"a {noun}"
 
-    @staticmethod
-    def _say_phone(phone: str | None) -> str:
-        if not phone:
-            return "you"
-        return f"{phone[:3]}-{phone[3:6]}-{phone[6:]}"

@@ -24,7 +24,7 @@ const columns = [
       { href: "/call", label: "Brightside Dental (fictional)" },
       { href: "/call", label: "Mon to Fri, 9 AM to 5 PM" },
       { href: "/call", label: "Sat, 9 AM to 1 PM" },
-      { href: "/call", label: "Demo booking: 555 014 2233" },
+      { href: "/call", label: "Demo booking: Jordan Lee" },
     ],
   },
 ];

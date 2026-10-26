@@ -27,7 +27,7 @@ export function SchedulePanel({ bookings, onReset }: { bookings: Booking[]; onRe
         </ul>
       )}
       <p className="border-t border-ink-100 px-5 py-2.5 text-[11px] text-ink-400">
-        Fake data. Try moving or cancelling Jordan Lee&apos;s visit with 555 014 2233.
+        Fake data. Try moving or cancelling Jordan Lee&apos;s visit: just say the name.
       </p>
     </section>
   );

@@ -8,6 +8,7 @@ export type CallState = {
   part_of_day: string | null;
   name: string | null;
   phone: string | null;
+  phone_skipped: boolean;
   booking_id: string | null;
   offers: string[];
   awaiting: string | null;

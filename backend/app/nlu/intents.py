@@ -87,15 +87,22 @@ _NOT_NAMES = {"calling", "looking", "trying", "here", "the", "a", "in", "not", "
 
 
 def find_phone(text: str) -> str | None:
-    # A phone number is one run of digits, spaces, dots, dashes or brackets,
-    # so "tomorrow at 10 am, 555 222 3333" still finds the right ten digits.
-    for run in re.findall(r"\(?\d[\d\s().-]*\d", text):
+    # Any number the caller gives, in any grouping ("135 567454 2132",
+    # "+44 20 7946 0000"): one run of 7 to 15 digits with spaces, dots, dashes
+    # or brackets between them. Looking at one run at a time keeps
+    # "tomorrow at 10 am, 555 222 3333" from gluing the 10 onto the number.
+    for run in re.findall(r"\+?\(?\d[\d\s().-]*\d", text):
         digits = re.sub(r"\D", "", run)
-        if len(digits) == 11 and digits.startswith("1"):
-            digits = digits[1:]
-        if len(digits) == 10:
+        if 7 <= len(digits) <= 15:
             return digits
     return None
+
+
+def wants_to_skip(text: str) -> bool:
+    """The caller would rather not give a phone number."""
+    return bool(re.search(
+        r"^(no|nope|nah)\b|\b(skip|rather not|prefer not|don'?t (want|have)|no (phone|number)|"
+        r"not (giving|sharing)|leave it|no thanks|without)\b", text))
 
 
 def find_choice(text: str) -> int | None:

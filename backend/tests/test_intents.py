@@ -1,6 +1,6 @@
 import pytest
 
-from app.nlu.intents import understand
+from app.nlu.intents import understand, wants_to_skip
 from app.nlu.normalize import normalize
 
 
@@ -40,5 +40,28 @@ def test_choice_and_correction():
     assert understand("actually make it 4").correction is True
 
 
-def test_leading_country_code_is_dropped():
-    assert understand(normalize("1 555 123 4567")).phone == "5551234567"
+@pytest.mark.parametrize(
+    "text, phone",
+    [
+        ("555 123 4567", "5551234567"),
+        ("135 567454 2132", "1355674542132"),  # any grouping, any length from 7 to 15
+        ("+44 20 7946 0000", "442079460000"),
+        ("(555) 123-4567", "5551234567"),
+        ("my number is 5551234", "5551234"),
+        ("tomorrow at 10 am, 555 222 3333", "5552223333"),
+        ("room 12345", None),  # too short to be a phone number
+        ("tomorrow at 10", None),
+    ],
+)
+def test_phone_in_any_format(text, phone):
+    assert understand(normalize(text)).phone == phone
+
+
+@pytest.mark.parametrize("text", ["skip", "no", "i'd rather not", "no thanks", "i don't want to give it", "book it without"])
+def test_skip_phone(text):
+    assert wants_to_skip(normalize(text))
+
+
+@pytest.mark.parametrize("text", ["555 123 4567", "jane doe", "sure"])
+def test_not_skip_phone(text):
+    assert not wants_to_skip(normalize(text))
